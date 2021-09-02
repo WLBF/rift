@@ -6,16 +6,19 @@
 #define RIFT_EVENTLOOP_H
 
 #include <thread>
+#include <vector>
 
 namespace rift {
+
+    class Channel;
+
+    class Poller;
 
     class EventLoop {
     public:
         EventLoop();
 
         EventLoop(const EventLoop &) = delete;
-
-        EventLoop(EventLoop &&) = delete;
 
         EventLoop &operator=(const EventLoop &) = delete;
 
@@ -33,13 +36,27 @@ namespace rift {
 
         EventLoop *GetEventLoopOfCurrentThread();
 
+        ///
+        /// Loops forever.
+        ///
+        /// Must be called in the same thread as creation of the object.
+        //
         void Loop();
+
+        void Quit();
+
+        void UpdateChannel(Channel *channel);
 
     private:
         void AbortNotInLoopTread();
 
-        bool looping_;
+        using ChannelList = std::vector<Channel *>;
+
+        bool looping_; /* atomic */
+        bool quit_; /* atomic */
         const std::thread::id thread_id_;
+        std::unique_ptr<Poller> poller_;
+        ChannelList active_channels_{};
     };
 }
 

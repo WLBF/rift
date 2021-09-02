@@ -2,16 +2,21 @@
 // Created by wlbf on 8/29/21.
 //
 
-#include <cassert>
-#include <poll.h>
-#include <glog/logging.h>
 #include "event_loop.h"
+#include "poller.h"
+#include "channel.h"
+
+#include <cassert>
+#include <glog/logging.h>
+
 
 namespace rift {
 
     thread_local EventLoop *t_loop_in_this_thread = nullptr;
+    const int k_poll_time_ms = 10000;
 
-    EventLoop::EventLoop() : looping_(false), thread_id_(std::this_thread::get_id()) {
+    EventLoop::EventLoop() : looping_(false), quit_(false), thread_id_(std::this_thread::get_id()),
+                             poller_(new Poller(this)) {
         LOG(INFO) << "EventLoop created " << this << " in thread " << thread_id_;
         if (t_loop_in_this_thread) {
             LOG(INFO) << "Another EventLoop " << t_loop_in_this_thread
@@ -28,7 +33,7 @@ namespace rift {
     }
 
     void EventLoop::AbortNotInLoopTread() {
-        LOG(FATAL) << "EventLoop::abortNotInLoopThread - EventLoop " << this
+        LOG(FATAL) << "EventLoop::AbortNotInLoopThread - EventLoop " << this
                    << " was created in threadId_ = " << thread_id_
                    << ", current thread id = " << std::this_thread::get_id();
         abort();
@@ -42,10 +47,28 @@ namespace rift {
         assert(!looping_);
         AssetInLoopThread();
         looping_ = true;
+        quit_ = false;
 
-        ::poll(nullptr, 0, 5 * 1000);
+
+        while (!quit_) {
+            active_channels_.clear();
+            poller_->Poll(k_poll_time_ms, &active_channels_);
+            for (auto &ch : active_channels_) {
+                ch->HandleEvent();
+            }
+        }
 
         LOG(INFO) << "EventLoop " << this << " stop looping";
         looping_ = false;
+    }
+
+    void EventLoop::Quit() {
+        quit_ = true;
+    }
+
+    void EventLoop::UpdateChannel(Channel *channel) {
+        assert(channel->OwnerLoop() == this);
+        AssetInLoopThread();
+        poller_->UpdateChannel(channel);
     }
 }
