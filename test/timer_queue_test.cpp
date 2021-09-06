@@ -2,21 +2,22 @@
 // Created by wlbf on 9/6/21.
 //
 
-#include "event_loop.h"
-
+#include <chrono>
 #include <thread>
+#include "event_loop.h"
+#include <gtest/gtest.h>
 #include <glog/logging.h>
 
-int cnt = 0;
-
-void print(const char *msg) {
+int main(int argc, char **argv) {
+    ::google::InitGoogleLogging(argv[0]);
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
 
-int main() {
-    ::google::InitGoogleLogging("");
-
+TEST(EventLoop, Basic) {
     rift::EventLoop loop, *p_loop = &loop;
 
+    int cnt = 0;
     auto print = [&](const char *msg) {
         printf("msg %s\n", msg);
         if (++cnt == 20) {

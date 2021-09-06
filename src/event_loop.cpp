@@ -80,7 +80,7 @@ namespace rift {
     }
 
     TimerId EventLoop::RunAfter(double delay, const TimerCallback &cb) {
-        auto time = std::chrono::system_clock::now() + Duration (delay);
+        auto time = std::chrono::system_clock::now() + Duration(delay);
         return RunAt(time, cb);
     }
 

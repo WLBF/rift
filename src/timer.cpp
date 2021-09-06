@@ -7,7 +7,7 @@
 namespace rift {
     void Timer::Restart(TimePoint now) {
         if (repeat_) {
-            expiration_ = now + Duration (interval_);
+            expiration_ = now + Duration(interval_);
         } else {
             expiration_ = std::nullopt;
         }
