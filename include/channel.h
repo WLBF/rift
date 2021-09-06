@@ -36,13 +36,13 @@ namespace rift {
 
         void SetErrorCallback(const EventCallback &cb) { error_callback_ = cb; }
 
-        int Fd() const { return fd_; }
+        [[nodiscard]] int Fd() const { return fd_; }
 
-        int Events() const { return events_; };
+        [[nodiscard]] int Events() const { return events_; };
 
         void SetEvents(int revt) { revents_ = revt; }
 
-        bool IsNoneEvent() const { return events_ == k_none_event; }
+        [[nodiscard]] bool IsNoneEvent() const { return events_ == k_none_event; }
 
         void EnableReading() {
             events_ |= k_read_event;
@@ -50,7 +50,7 @@ namespace rift {
         }
 
         // for Poller
-        int Index() const { return index_; }
+        [[nodiscard]] int Index() const { return index_; }
 
         void SetIndex(int idx) { index_ = idx; }
 

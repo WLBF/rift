@@ -12,9 +12,9 @@ namespace rift {
 
     Poller::Poller(EventLoop *loop) : owner_loop_(loop) {}
 
-    Poller::~Poller() {}
+    Poller::~Poller() = default;
 
-    void Poller::Poll(int timeout_ms, Poller::ChannelList *active_channels) {
+    TimePoint Poller::Poll(int timeout_ms, Poller::ChannelList *active_channels) {
         int num_events = ::poll(pollfds_.data(), pollfds_.size(), timeout_ms);
         if (num_events > 0) {
             LOG(INFO) << num_events << "events happened";
@@ -24,6 +24,7 @@ namespace rift {
         } else {
             LOG(ERROR) << "Poller::poll()";
         }
+        return std::chrono::system_clock::now();
     }
 
     void Poller::FillActiveChannels(int num_events, Poller::ChannelList *active_channels) const {

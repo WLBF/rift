@@ -9,6 +9,7 @@
 
 #include "event_loop.h"
 #include "channel.h"
+#include "time_point.h"
 
 #include <map>
 #include <vector>
@@ -26,7 +27,7 @@ namespace rift {
     public:
         using ChannelList = std::vector<Channel *>;
 
-        Poller(EventLoop *loop);
+        explicit Poller(EventLoop *loop);
 
         Poller(const Poller &) = delete;
 
@@ -36,7 +37,7 @@ namespace rift {
 
         /// Polls the I/O events.
         /// Must be called in the loop thread
-        void Poll(int timeout_ms, ChannelList *active_channels);
+        TimePoint Poll(int timeout_ms, ChannelList *active_channels);
 
         /// Changes the interested I/O events.
         /// Must be called in the loop thread.
