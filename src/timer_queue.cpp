@@ -79,14 +79,21 @@ TimerQueue::~TimerQueue() {
     // do not remove channel, since we're in  EventLoop::destructor();
 }
 
-TimerId TimerQueue::addTimer(const TimerCallback &cb, TimePoint when, double interval) {
-    loop_->AssetInLoopThread();
+TimerId TimerQueue::addTimer(const TimerCallback &cb,
+                             TimePoint when,
+                             double interval) {
     auto *timer = new Timer(cb, when, interval);
-    if (Insert(Entry{when, timer})) {
-        assert(timer->Expiration().has_value());
+    loop_->RunInLoop([this, when, timer] { AddTimerInLoop(when, timer); });
+    return TimerId(timer);
+}
+
+void TimerQueue::AddTimerInLoop(TimePoint when, Timer *timer) {
+    loop_->AssetInLoopThread();
+    bool earliest_changed = Insert(Entry{when, timer});
+
+    if (earliest_changed) {
         ResetTimerFd(timer_fd_, timer->Expiration().value());
     }
-    return TimerId(timer);
 }
 
 void TimerQueue::HandleRead() {

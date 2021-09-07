@@ -56,6 +56,8 @@ namespace rift {
         Channel timer_fd_channel_;
         // Timer list sorted by expiration;
         TimerList timers_;
+
+        void AddTimerInLoop(TimePoint when, Timer *timer);
     };
 
 }

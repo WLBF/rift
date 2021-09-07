@@ -9,31 +9,46 @@
 
 #include <cassert>
 #include <glog/logging.h>
+#include <sys/eventfd.h>
 
 
 namespace rift {
 
-    thread_local EventLoop *t_loop_in_this_thread = nullptr;
-    const int k_poll_time_ms = 10000;
+    thread_local EventLoop *LoopInThisThread = nullptr;
+    const int PollTimeMs = 10000;
+
+    static int CreateEventFd() {
+        int evt_fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+        if (evt_fd < 0) {
+            LOG(ERROR) << "Failed in eventfd";
+            abort();
+        }
+        return evt_fd;
+    }
 
     EventLoop::EventLoop()
             : looping_(false), quit_(false),
               thread_id_(std::this_thread::get_id()),
               poller_(new Poller(this)),
-              timer_queue_(new TimerQueue(this)) {
+              timer_queue_(new TimerQueue(this)),
+              wakeup_fd_(CreateEventFd()),
+              wakeup_channel_(new Channel(this, wakeup_fd_)) {
         LOG(INFO) << "EventLoop created " << this << " in thread " << thread_id_;
-        if (t_loop_in_this_thread) {
-            LOG(INFO) << "Another EventLoop " << t_loop_in_this_thread
+        if (LoopInThisThread) {
+            LOG(INFO) << "Another EventLoop " << LoopInThisThread
                       << " exists in this thread " << thread_id_;
             abort();
         } else {
-            t_loop_in_this_thread = this;
+            LoopInThisThread = this;
         }
+        wakeup_channel_->SetReadCallback([this] { HandleRead(); });
+        // we are always reading the wakeup_fd
+        wakeup_channel_->EnableReading();
     }
 
     EventLoop::~EventLoop() {
         assert(!looping_);
-        t_loop_in_this_thread = nullptr;
+        LoopInThisThread = nullptr;
     }
 
     void EventLoop::AbortNotInLoopTread() {
@@ -44,7 +59,7 @@ namespace rift {
     }
 
     EventLoop *EventLoop::GetEventLoopOfCurrentThread() {
-        return t_loop_in_this_thread;
+        return LoopInThisThread;
     }
 
     void EventLoop::Loop() {
@@ -55,10 +70,11 @@ namespace rift {
 
         while (!quit_) {
             active_channels_.clear();
-            poll_return_time_ = poller_->Poll(k_poll_time_ms, &active_channels_);
+            poll_return_time_ = poller_->Poll(PollTimeMs, &active_channels_);
             for (auto &ch : active_channels_) {
                 ch->HandleEvent();
             }
+            DoPendingFunctors();
         }
 
         LOG(INFO) << "EventLoop " << this << " stop looping";
@@ -67,6 +83,9 @@ namespace rift {
 
     void EventLoop::Quit() {
         quit_ = true;
+        if (!IsInLoopThread()) {
+            Wakeup();
+        }
     }
 
     void EventLoop::UpdateChannel(Channel *channel) {
@@ -88,4 +107,55 @@ namespace rift {
         auto time = std::chrono::system_clock::now() + Duration(interval);
         return timer_queue_->addTimer(cb, time, interval);
     }
+
+    void EventLoop::RunInLoop(const EventLoop::Functor &cb) {
+        if (IsInLoopThread()) {
+            cb();
+        } else {
+            QueueInLoop(cb);
+        }
+    }
+
+    void EventLoop::QueueInLoop(const EventLoop::Functor &cb) {
+        {
+            std::scoped_lock lock(mutex_);
+            pending_functors_.push_back(cb);
+        }
+
+        if (!IsInLoopThread() || calling_pending_fucntors_) {
+            Wakeup();
+        }
+    }
+
+    void EventLoop::Wakeup() const {
+        uint64_t one = 1;
+        ssize_t n = ::write(wakeup_fd_, &one, sizeof one);
+        if (n != sizeof one) {
+            LOG(ERROR) << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+        }
+    }
+
+    void EventLoop::HandleRead() const {
+        uint64_t one = 1;
+        ssize_t n = ::read(wakeup_fd_, &one, sizeof one);
+        if (n != sizeof one) {
+            LOG(ERROR) << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
+        }
+    }
+
+    void EventLoop::DoPendingFunctors() {
+        std::vector<Functor> functors;
+        calling_pending_fucntors_ = true;
+        {
+            std::scoped_lock lock(mutex_);
+            functors.swap(pending_functors_);
+        }
+
+        for (auto &f : functors) {
+            f();
+        }
+
+        calling_pending_fucntors_ = false;
+    }
+
 }
