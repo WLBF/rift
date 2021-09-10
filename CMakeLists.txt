@@ -4,7 +4,6 @@ project(rift)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(glog 0.6.0 REQUIRED)
-find_package(GTest REQUIRED)
 
 file(GLOB rift_sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_library(rift STATIC ${rift_sources})
