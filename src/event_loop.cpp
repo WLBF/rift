@@ -14,8 +14,8 @@
 
 namespace rift {
 
-    thread_local EventLoop *LoopInThisThread = nullptr;
-    const int PollTimeMs = 10000;
+    thread_local EventLoop *t_loop_in_this_thread = nullptr;
+    const int k_poll_time_ms = 10000;
 
     static int CreateEventFd() {
         int evt_fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
@@ -34,12 +34,12 @@ namespace rift {
               wakeup_fd_(CreateEventFd()),
               wakeup_channel_(new Channel(this, wakeup_fd_)) {
         LOG(INFO) << "EventLoop created " << this << " in thread " << thread_id_;
-        if (LoopInThisThread) {
-            LOG(INFO) << "Another EventLoop " << LoopInThisThread
+        if (t_loop_in_this_thread) {
+            LOG(INFO) << "Another EventLoop " << t_loop_in_this_thread
                       << " exists in this thread " << thread_id_;
             abort();
         } else {
-            LoopInThisThread = this;
+            t_loop_in_this_thread = this;
         }
         wakeup_channel_->SetReadCallback([this] { HandleRead(); });
         // we are always reading the wakeup_fd
@@ -48,7 +48,7 @@ namespace rift {
 
     EventLoop::~EventLoop() {
         assert(!looping_);
-        LoopInThisThread = nullptr;
+        t_loop_in_this_thread = nullptr;
     }
 
     void EventLoop::AbortNotInLoopTread() {
@@ -59,7 +59,7 @@ namespace rift {
     }
 
     EventLoop *EventLoop::GetEventLoopOfCurrentThread() {
-        return LoopInThisThread;
+        return t_loop_in_this_thread;
     }
 
     void EventLoop::Loop() {
@@ -70,7 +70,7 @@ namespace rift {
 
         while (!quit_) {
             active_channels_.clear();
-            poll_return_time_ = poller_->Poll(PollTimeMs, &active_channels_);
+            poll_return_time_ = poller_->Poll(k_poll_time_ms, &active_channels_);
             for (auto &ch : active_channels_) {
                 ch->HandleEvent();
             }

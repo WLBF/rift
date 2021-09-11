@@ -17,6 +17,7 @@ namespace rift::detail {
         int timer_fd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
         if (timer_fd < 0) {
             LOG(ERROR) << "Failed in timerfd_create";
+            abort();
         }
         return timer_fd;
     }
@@ -30,9 +31,9 @@ namespace rift::detail {
         }
         struct timespec ts{};
         ts.tv_sec = static_cast<time_t>(
-                microseconds / MicroSecondsPerSecond);
+                microseconds / micro_seconds_per_second);
         ts.tv_nsec = static_cast<long>(
-                (microseconds % MicroSecondsPerSecond) * 1000);
+                (microseconds % micro_seconds_per_second) * 1000);
         return ts;
     }
 

@@ -11,7 +11,7 @@ namespace rift {
     using Duration = std::chrono::duration<double>;
     using TimePoint = std::chrono::time_point<std::chrono::system_clock, Duration>;
 
-    static const int MicroSecondsPerSecond = 1000 * 1000;
+    static const int micro_seconds_per_second = 1000 * 1000;
 }
 
 #endif //RIFT_TIME_POINT_H
