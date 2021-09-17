@@ -9,5 +9,5 @@ Replace `boost` and `muduo` library with C++11 features and `glog` library.
 * Use `std::chrono` as time utility.
 * Replace `scoped_ptr` with `unique_ptr`.
 * Replace `set` with `multimap` in *TimerQueue*.
-* Pass *Socket* rvalue to *NewConnectionCallback* instead of raw connection fd.
+* Move *Socket* to *NewConnectionCallback* instead of pass raw connection fd.
  
