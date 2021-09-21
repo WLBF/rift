@@ -4,7 +4,7 @@ Yet another reproduction of muduo library.
 
 ### Modifications
 
-Replace `boost` and `muduo` library with C++11 features and `glog` library.
+Replace `boost` and `muduo` library with C++11/17 features and `glog` library.
 
 * Use `std::chrono` as time utility.
 * Replace `scoped_ptr` with `unique_ptr`.
