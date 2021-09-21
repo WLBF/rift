@@ -12,5 +12,7 @@ target_link_libraries(rift glog::glog)
 
 target_include_directories(rift PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+add_subdirectory(example)
+
 enable_testing()
 add_subdirectory(test)

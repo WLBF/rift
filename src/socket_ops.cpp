@@ -139,4 +139,15 @@ namespace rift::sockets {
             abort();
         }
     }
+
+    struct sockaddr_in GetLocalAddr(int sock_fd) {
+        struct sockaddr_in local_addr{};
+        bzero(&local_addr, sizeof local_addr);
+        socklen_t addrlen = sizeof(local_addr);
+        if (::getsockname(sock_fd, sockaddr_cast(&local_addr), &addrlen) < 0)
+        {
+            LOG(ERROR) << "sockets::GetLocalAddr";
+        }
+        return local_addr;
+    }
 }

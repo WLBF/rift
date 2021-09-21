@@ -32,7 +32,7 @@ namespace rift {
         InetAddress peer_addr(0);
         //FIXME loop until no more
         int conn_fd = accept_socket_.Accept(&peer_addr);
-        Socket conn_sock(conn_fd);
+        SocketPtr conn_sock = std::make_unique<Socket>(conn_fd);
         if (new_connection_callback_) {
             new_connection_callback_(std::move(conn_sock), peer_addr);
         } else {

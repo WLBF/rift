@@ -15,15 +15,15 @@ namespace rift {
         sockets::Close(sock_fd_);
     }
 
-    void Socket::BindAddress(const InetAddress &local_addr) {
+    void Socket::BindAddress(const InetAddress &local_addr) const {
         sockets::BindOrDie(sock_fd_, local_addr.GetSockAddrInet());
     }
 
-    void Socket::Listen() {
+    void Socket::Listen() const {
         sockets::ListenOrDie(sock_fd_);
     }
 
-    int Socket::Accept(InetAddress *peer_addr) {
+    int Socket::Accept(InetAddress *peer_addr) const {
         struct sockaddr_in addr{};
         bzero(&addr, sizeof addr);
         int conn_fd = sockets::Accept(sock_fd_, &addr);
@@ -33,7 +33,7 @@ namespace rift {
         return conn_fd;
     }
 
-    void Socket::SetReuseAddr(bool on) {
+    void Socket::SetReuseAddr(bool on) const {
         int opt_val = on ? 1 : 0;
         int ret = ::setsockopt(sock_fd_, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof opt_val);
         if (ret < 0) {

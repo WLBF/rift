@@ -19,7 +19,7 @@ namespace rift {
 
     class Acceptor {
     public:
-        using NewConnectionCallback = std::function<void(Socket &&, const InetAddress &)>;
+        using NewConnectionCallback = std::function<void(SocketPtr &&, const InetAddress &)>;
 
         Acceptor(EventLoop *loop, const InetAddress &listen_addr);
 
