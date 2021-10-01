@@ -7,6 +7,8 @@
 #include "tcp_server.h"
 #include "socket_ops.h"
 #include "tcp_connection.h"
+
+#include <cassert>
 #include <glog/logging.h>
 
 namespace rift {
@@ -51,6 +53,16 @@ namespace rift {
         connections_[conn_name] = conn;
         conn->SetConnectionCallback(connection_callback_);
         conn->SetMessageCallback(message_callback_);
+        conn->SetCloseCallback([this](const TcpConnectionPtr &conn) { RemoveConnection(conn); });
         conn->ConnectEstablished();
+    }
+
+    void TcpServer::RemoveConnection(const TcpConnectionPtr &conn) {
+        loop_->AssetInLoopThread();
+        LOG(INFO) << "TcpServer::RemoveConnection [" << name_
+                  << "] - connection " << conn->Name();
+        size_t n = connections_.erase(conn->Name());
+        assert(n == 1);
+        loop_->QueueInLoop([conn] { conn->ConnectDestroyed(); });
     }
 }

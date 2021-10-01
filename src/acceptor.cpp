@@ -6,7 +6,6 @@
 #include "event_loop.h"
 #include "inet_address.h"
 #include "socket_ops.h"
-#include <glog/logging.h>
 
 namespace rift {
 

@@ -29,6 +29,7 @@ namespace rift {
     EventLoop::EventLoop()
             : looping_(false), quit_(false),
               thread_id_(std::this_thread::get_id()),
+              calling_pending_fucntors_(false),
               poller_(new Poller(this)),
               timer_queue_(new TimerQueue(this)),
               wakeup_fd_(CreateEventFd()),
@@ -71,7 +72,7 @@ namespace rift {
         while (!quit_) {
             active_channels_.clear();
             poll_return_time_ = poller_->Poll(k_poll_time_ms, &active_channels_);
-            for (auto &ch : active_channels_) {
+            for (auto &ch: active_channels_) {
                 ch->HandleEvent();
             }
             DoPendingFunctors();
@@ -92,6 +93,12 @@ namespace rift {
         assert(channel->OwnerLoop() == this);
         AssetInLoopThread();
         poller_->UpdateChannel(channel);
+    }
+
+    void EventLoop::RemoveChannel(Channel *channel) {
+        assert(channel->OwnerLoop() == this);
+        AssetInLoopThread();
+        poller_->RemoveChannel(channel);
     }
 
     TimerId EventLoop::RunAt(const TimePoint &time, const TimerCallback &cb) {
@@ -151,7 +158,7 @@ namespace rift {
             functors.swap(pending_functors_);
         }
 
-        for (auto &f : functors) {
+        for (auto &f: functors) {
             f();
         }
 

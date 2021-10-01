@@ -28,6 +28,8 @@ namespace rift {
 
         Channel &operator=(const Channel &) = delete;
 
+        ~Channel();
+
         void HandleEvent();
 
         void SetReadCallback(const EventCallback &cb) { read_callback_ = cb; }
@@ -35,6 +37,8 @@ namespace rift {
         void SetWriteCallback(const EventCallback &cb) { write_callback_ = cb; }
 
         void SetErrorCallback(const EventCallback &cb) { error_callback_ = cb; }
+
+        void SetCloseCallback(const EventCallback &cb) { close_callback_ = cb; }
 
         [[nodiscard]] int Fd() const { return fd_; }
 
@@ -46,6 +50,11 @@ namespace rift {
 
         void EnableReading() {
             events_ |= k_read_event;
+            Update();
+        }
+
+        void DisableAll() {
+            events_ = k_none_event;
             Update();
         }
 
@@ -70,9 +79,12 @@ namespace rift {
         int revents_;
         int index_;
 
+        bool event_handling_;
+
         EventCallback read_callback_;
         EventCallback write_callback_;
         EventCallback error_callback_;
+        EventCallback close_callback_;
     };
 
 

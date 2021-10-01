@@ -60,15 +60,40 @@ namespace rift {
             assert(channels_.find(channel->Fd()) != channels_.end());
             assert(channels_[channel->Fd()] == channel);
             int idx = channel->Index();
-            assert(idx >= 0 && idx < pollfds_.size());
+            assert(idx >= 0 && idx < static_cast<int>(pollfds_.size()));
             auto &pfd = pollfds_[idx];
-            assert(pfd.fd == channel->Fd() || pfd.fd == -1);
+            assert(pfd.fd == channel->Fd() || pfd.fd == -channel->Fd() - 1);
             pfd.events = static_cast<short>(channel->Events());
             pfd.revents = 0;
             if (channel->IsNoneEvent()) {
                 // ignore this pollfd
-                pfd.fd = -1;
+                pfd.fd = -channel->Fd() - 1;
             }
+        }
+    }
+
+    void Poller::RemoveChannel(Channel *channel) {
+        AssertInLoopThread();
+        LOG(INFO) << "fd = " << channel->Fd();
+        assert(channels_.find(channel->Fd()) != channels_.end());
+        assert(channels_[channel->Fd()] == channel);
+        assert(channel->IsNoneEvent());
+        int idx = channel->Index();
+        assert(0 <= idx && idx < static_cast<int>(pollfds_.size()));
+        const struct pollfd &pfd = pollfds_[idx];
+        assert(pfd.fd == -channel->Fd() - 1 && pfd.events == channel->Events());
+        size_t n = channels_.erase(channel->Fd());
+        assert(n == 1);
+        if (idx == static_cast<int>(pollfds_.size()) - 1) {
+            pollfds_.pop_back();
+        } else {
+            int channel_at_end = pollfds_.back().fd;
+            std::iter_swap(pollfds_.begin() + idx, pollfds_.end() - 1);
+            if (channel_at_end < 0) {
+                channel_at_end = -channel_at_end - 1;
+            }
+            channels_[channel_at_end]->SetIndex(idx);
+            pollfds_.pop_back();
         }
     }
 }

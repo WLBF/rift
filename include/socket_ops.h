@@ -53,6 +53,8 @@ namespace rift::sockets {
     void FromHostPort(const char *ip, uint16_t port, struct sockaddr_in *addr);
 
     struct sockaddr_in GetLocalAddr(int sock_fd);
+
+    int GetSocketError(int sock_fd);
 }
 
 #endif //RIFT_SOCKET_OPS_H

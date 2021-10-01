@@ -56,7 +56,7 @@ namespace rift {
         ///
         /// Time when poll returns, usually means data arrival.
         ///
-        TimePoint PollReturnTime() const { return poll_return_time_; }
+        [[nodiscard]] TimePoint PollReturnTime() const { return poll_return_time_; }
 
         /// Runs callback immediately in the loop thread.
         /// It wakes up the loop, and run the cb.
@@ -88,6 +88,7 @@ namespace rift {
         void Wakeup() const;
 
         void UpdateChannel(Channel *channel);
+        void RemoveChannel(Channel *channel);
 
     private:
         using ChannelList = std::vector<Channel *>;

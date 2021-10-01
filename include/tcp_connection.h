@@ -43,19 +43,30 @@ namespace rift {
 
         void SetMessageCallback(const MessageCallback &cb) { message_callback_ = cb; }
 
+        void SetCloseCallback(const CloseCallback &cb) { close_callback_ = cb; }
+
         /// Internal use only.
 
         // called when TcpServer accepts a new connection
         void ConnectEstablished();   // should be called only once
 
+        // called when TcpServer has removed me from its map
+        void ConnectDestroyed(); // should be called only once
+
     private:
         enum StateE {
-            k_connecting, k_connected,
+            k_connecting, k_connected, k_disconnected,
         };
 
         void SetState(StateE s) { state_ = s; }
 
         void HandleRead();
+
+        void HandleWrite();
+
+        void HandleClose();
+
+        void HandleError();
 
         EventLoop *loop_;
         std::string name_;
@@ -67,6 +78,7 @@ namespace rift {
         InetAddress peer_addr_;
         ConnectionCallback connection_callback_;
         MessageCallback message_callback_;
+        CloseCallback close_callback_;
     };
 
     using TcpConnectionPtr = std::shared_ptr<TcpConnection>;

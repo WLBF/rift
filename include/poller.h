@@ -43,6 +43,10 @@ namespace rift {
         /// Must be called in the loop thread.
         void UpdateChannel(Channel *channel);
 
+        /// Remove the channel, when it destructs.
+        /// Must be called in the loop thread.
+        void RemoveChannel(Channel *channel);
+
 
         void AssertInLoopThread() { owner_loop_->AssetInLoopThread(); }
 

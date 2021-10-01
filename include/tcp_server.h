@@ -48,6 +48,7 @@ namespace rift {
         /// Not thread safe, but in loop
         void NewConnection(SocketPtr &&sock, const InetAddress &peer_addr);
 
+        void RemoveConnection(const TcpConnectionPtr &conn);
 
         EventLoop *loop_; // the Acceptor loop
         const std::string name_;

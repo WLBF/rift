@@ -144,10 +144,21 @@ namespace rift::sockets {
         struct sockaddr_in local_addr{};
         bzero(&local_addr, sizeof local_addr);
         socklen_t addrlen = sizeof(local_addr);
-        if (::getsockname(sock_fd, sockaddr_cast(&local_addr), &addrlen) < 0)
-        {
+        if (::getsockname(sock_fd, sockaddr_cast(&local_addr), &addrlen) < 0) {
             LOG(ERROR) << "sockets::GetLocalAddr";
         }
         return local_addr;
+    }
+
+
+    int GetSocketError(int sock_fd) {
+        int opt_val;
+        socklen_t opt_len = sizeof opt_val;
+
+        if (::getsockopt(sock_fd, SOL_SOCKET, SO_ERROR, &opt_val, &opt_len) < 0) {
+            return errno;
+        } else {
+            return opt_val;
+        }
     }
 }
