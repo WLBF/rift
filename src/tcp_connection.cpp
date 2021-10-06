@@ -25,13 +25,13 @@ namespace rift {
               local_addr_(local_addr),
               peer_addr_(peer_addr) {
 
-        LOG(INFO) << "TcpConnection::ctor[" << name_ << "] at " << this
+        VLOG(4) << "TcpConnection::ctor[" << name_ << "] at " << this
                   << " fd=" << socket_->Fd();
         channel_->SetReadCallback([this] { HandleRead(); });
     }
 
     TcpConnection::~TcpConnection() {
-        LOG(INFO) << "TcpConnection::dtor[" << name_ << "] at " << this
+        VLOG(4)  << "TcpConnection::dtor[" << name_ << "] at " << this
                   << " fd=" << channel_->Fd();
     }
 
@@ -70,7 +70,7 @@ namespace rift {
 
     void TcpConnection::HandleClose() {
         loop_->AssetInLoopThread();
-        LOG(ERROR) << "TcpConnection::HandleClose state = " << state_;
+        VLOG(5) << "TcpConnection::HandleClose state = " << state_;
         assert(state_ == k_connected);
         // we don't close fd, leave it  to destructor, so we can find leaks easily.
         channel_->DisableAll();

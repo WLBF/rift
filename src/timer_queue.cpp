@@ -16,8 +16,7 @@ namespace rift::detail {
     int CreateTimerFd() {
         int timer_fd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
         if (timer_fd < 0) {
-            LOG(ERROR) << "Failed in timerfd_create";
-            abort();
+            SYSLOG(FATAL) << "Failed in timerfd_create";
         }
         return timer_fd;
     }
@@ -40,7 +39,7 @@ namespace rift::detail {
     void ReadTimerFd(int timer_fd, TimePoint now) {
         uint64_t how_many;
         ssize_t n = ::read(timer_fd, &how_many, sizeof how_many);
-        LOG(INFO) << "TimerQueue::handleRead() " << how_many << " at "
+        VLOG(5) << "TimerQueue::handleRead() " << how_many << " at "
                   << std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
         if (n != sizeof how_many) {
             LOG(ERROR) << "TimerQueue::handleRead() reads " << n << " bytes instead of 8";
@@ -56,7 +55,7 @@ namespace rift::detail {
         newValue.it_value = HowMuchTimeFromNow(expiration);
         int ret = ::timerfd_settime(timer_fd, 0, &newValue, &oldValue);
         if (ret) {
-            LOG(ERROR) << "timerfd_settime()";
+            SYSLOG(ERROR) << "timerfd_settime()";
         }
     }
 

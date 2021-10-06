@@ -37,8 +37,7 @@ namespace rift {
         int opt_val = on ? 1 : 0;
         int ret = ::setsockopt(sock_fd_, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof opt_val);
         if (ret < 0) {
-            LOG(ERROR) << "socket::SetReuseAddr";
-            abort();
+            LOG(FATAL) << "socket::SetReuseAddr";
         }
     }
 }

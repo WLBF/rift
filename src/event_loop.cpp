@@ -20,8 +20,7 @@ namespace rift {
     static int CreateEventFd() {
         int evt_fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
         if (evt_fd < 0) {
-            LOG(ERROR) << "Failed in eventfd";
-            abort();
+            SYSLOG(FATAL) << "Failed in eventfd";
         }
         return evt_fd;
     }
@@ -34,11 +33,10 @@ namespace rift {
               timer_queue_(new TimerQueue(this)),
               wakeup_fd_(CreateEventFd()),
               wakeup_channel_(new Channel(this, wakeup_fd_)) {
-        LOG(INFO) << "EventLoop created " << this << " in thread " << thread_id_;
+        VLOG(5) << "EventLoop created " << this << " in thread " << thread_id_;
         if (t_loop_in_this_thread) {
-            LOG(INFO) << "Another EventLoop " << t_loop_in_this_thread
+            LOG(FATAL) << "Another EventLoop " << t_loop_in_this_thread
                       << " exists in this thread " << thread_id_;
-            abort();
         } else {
             t_loop_in_this_thread = this;
         }
@@ -56,7 +54,6 @@ namespace rift {
         LOG(FATAL) << "EventLoop::AbortNotInLoopThread - EventLoop " << this
                    << " was created in threadId_ = " << thread_id_
                    << ", current thread id = " << std::this_thread::get_id();
-        abort();
     }
 
     EventLoop *EventLoop::GetEventLoopOfCurrentThread() {
@@ -78,7 +75,7 @@ namespace rift {
             DoPendingFunctors();
         }
 
-        LOG(INFO) << "EventLoop " << this << " stop looping";
+        VLOG(5) << "EventLoop " << this << " stop looping";
         looping_ = false;
     }
 

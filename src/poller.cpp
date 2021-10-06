@@ -17,12 +17,12 @@ namespace rift {
     TimePoint Poller::Poll(int timeout_ms, Poller::ChannelList *active_channels) {
         int num_events = ::poll(pollfds_.data(), pollfds_.size(), timeout_ms);
         if (num_events > 0) {
-            LOG(INFO) << num_events << "events happened";
+            VLOG(5) << num_events << "events happened";
             FillActiveChannels(num_events, active_channels);
         } else if (num_events == 0) {
-            LOG(INFO) << "nothing happened";
+            VLOG(5) << "nothing happened";
         } else {
-            LOG(ERROR) << "Poller::poll()";
+            SYSLOG(ERROR) << "Poller::poll()";
         }
         return std::chrono::system_clock::now();
     }
@@ -43,7 +43,7 @@ namespace rift {
 
     void Poller::UpdateChannel(Channel *channel) {
         AssertInLoopThread();
-        LOG(INFO) << "fd = " << channel->Fd() << " events = " << channel->Events();
+        VLOG(5) << "fd = " << channel->Fd() << " events = " << channel->Events();
         if (channel->Index() < 0) {
             // a new one, add to pollfds_
             assert(channels_.find(channel->Fd()) == channels_.end());
@@ -74,7 +74,7 @@ namespace rift {
 
     void Poller::RemoveChannel(Channel *channel) {
         AssertInLoopThread();
-        LOG(INFO) << "fd = " << channel->Fd();
+        VLOG(5) << "fd = " << channel->Fd();
         assert(channels_.find(channel->Fd()) != channels_.end());
         assert(channels_[channel->Fd()] == channel);
         assert(channel->IsNoneEvent());

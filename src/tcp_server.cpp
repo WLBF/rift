@@ -42,7 +42,7 @@ namespace rift {
         next_conn_id_++;
         std::string conn_name = name_ + buf;
 
-        LOG(INFO) << "TcpServer::NewConnection [" << name_
+        VLOG(0) << "TcpServer::NewConnection [" << name_
                   << "] - new connection [" << conn_name
                   << "] from " << peer_addr.ToHostPort();
 
@@ -59,7 +59,7 @@ namespace rift {
 
     void TcpServer::RemoveConnection(const TcpConnectionPtr &conn) {
         loop_->AssetInLoopThread();
-        LOG(INFO) << "TcpServer::RemoveConnection [" << name_
+        VLOG(0) << "TcpServer::RemoveConnection [" << name_
                   << "] - connection " << conn->Name();
         size_t n = connections_.erase(conn->Name());
         assert(n == 1);

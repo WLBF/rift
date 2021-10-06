@@ -28,7 +28,7 @@ namespace {
         flags |= O_NONBLOCK;
         int ret = ::fcntl(sockfd, F_SETFL, flags);
         if (ret < 0) {
-            abort();
+            SYSLOG(ERROR) << "SetNonBlockAndCloseOnExec";
         }
 
         // close-on-exec
@@ -36,7 +36,7 @@ namespace {
         flags |= FD_CLOEXEC;
         ret = ::fcntl(sockfd, F_SETFD, flags);
         if (ret < 0) {
-            abort();
+            SYSLOG(ERROR) << "SetNonBlockAndCloseOnExec";
         }
     }
 }
@@ -53,8 +53,7 @@ namespace rift::sockets {
 #else
         int sock_fd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
         if (sock_fd < 0) {
-            LOG(ERROR) << "sockets::CreateNonblockingOrDie";
-            abort();
+            SYSLOG(FATAL) << "sockets::CreateNonblockingOrDie";
         }
 #endif
         return sock_fd;
@@ -63,16 +62,14 @@ namespace rift::sockets {
     void BindOrDie(int sock_fd, const struct sockaddr_in &addr) {
         int ret = ::bind(sock_fd, sockaddr_cast(&addr), sizeof addr);
         if (ret < 0) {
-            LOG(ERROR) << "sockets::BindOrDie";
-            abort();
+            SYSLOG(FATAL) << "sockets::BindOrDie";
         }
     }
 
     void ListenOrDie(int sock_fd) {
         int ret = ::listen(sock_fd, SOMAXCONN);
         if (ret < 0) {
-            LOG(ERROR) << "sockets::ListenOrDie";
-            abort();
+            SYSLOG(FATAL) << "sockets::ListenOrDie";
         }
     }
 
@@ -107,11 +104,9 @@ namespace rift::sockets {
                 case ENOTSOCK:
                 case EOPNOTSUPP:
                     // unexpected errors
-                    LOG(ERROR) << "unexpected error of ::accept " << savedErrno;
-                    abort();
+                    LOG(FATAL) << "unexpected error of ::accept " << savedErrno;
                 default:
-                    LOG(ERROR) << "unknown error of ::accept " << savedErrno;;
-                    abort();
+                    LOG(FATAL) << "unknown error of ::accept " << savedErrno;;
             }
         }
         return conn_fd;
@@ -119,8 +114,7 @@ namespace rift::sockets {
 
     void Close(int sock_fd) {
         if (::close(sock_fd) < 0) {
-            LOG(ERROR) << "sockets::Close";
-            abort();
+            SYSLOG(ERROR) << "sockets::Close";
         }
     }
 
@@ -135,8 +129,7 @@ namespace rift::sockets {
         addr->sin_family = AF_INET;
         addr->sin_port = HostToNetwork16(port);
         if (::inet_pton(AF_INET, ip, &addr->sin_addr) <= 0) {
-            LOG(ERROR) << "sockets::FromHostPort";
-            abort();
+            SYSLOG(ERROR) << "sockets::FromHostPort";
         }
     }
 
@@ -145,7 +138,7 @@ namespace rift::sockets {
         bzero(&local_addr, sizeof local_addr);
         socklen_t addrlen = sizeof(local_addr);
         if (::getsockname(sock_fd, sockaddr_cast(&local_addr), &addrlen) < 0) {
-            LOG(ERROR) << "sockets::GetLocalAddr";
+            SYSLOG(ERROR) << "sockets::GetLocalAddr";
         }
         return local_addr;
     }

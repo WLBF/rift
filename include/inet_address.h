@@ -27,7 +27,7 @@ namespace rift {
         /// Mostly used when accepting new connections.
         explicit InetAddress(const struct sockaddr_in &addr) : addr_(addr) {}
 
-        std::string ToHostPort() const;
+        [[nodiscard]] std::string ToHostPort() const;
 
         // default copy/assignment are okay.
 
