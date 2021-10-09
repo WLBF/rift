@@ -20,7 +20,7 @@ namespace rift {
     static int CreateEventFd() {
         int evt_fd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
         if (evt_fd < 0) {
-            SYSLOG(FATAL) << "Failed in eventfd";
+            LOG(FATAL) << "Failed in eventfd";
         }
         return evt_fd;
     }

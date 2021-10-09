@@ -22,7 +22,7 @@ namespace rift {
         } else if (num_events == 0) {
             VLOG(5) << "nothing happened";
         } else {
-            SYSLOG(ERROR) << "Poller::poll()";
+            LOG(ERROR) << "Poller::poll()";
         }
         return std::chrono::system_clock::now();
     }

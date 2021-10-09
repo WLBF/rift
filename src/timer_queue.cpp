@@ -16,7 +16,7 @@ namespace rift::detail {
     int CreateTimerFd() {
         int timer_fd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
         if (timer_fd < 0) {
-            SYSLOG(FATAL) << "Failed in timerfd_create";
+            LOG(FATAL) << "Failed in timerfd_create";
         }
         return timer_fd;
     }
@@ -55,7 +55,7 @@ namespace rift::detail {
         newValue.it_value = HowMuchTimeFromNow(expiration);
         int ret = ::timerfd_settime(timer_fd, 0, &newValue, &oldValue);
         if (ret) {
-            SYSLOG(ERROR) << "timerfd_settime()";
+            LOG(ERROR) << "timerfd_settime()";
         }
     }
 

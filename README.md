@@ -20,6 +20,3 @@ Replace `boost` and `muduo` library with C++11/17 features and `glog` library.
     * VLOG(0) - Generally useful for this to ALWAYS be visible to an operator.
     * VLOG(4) - Debug level verbosity.
     * VLOG(5) - Trace level verbosity.
-* Log to syslog in addition to the normal logs:
-    * SYSLOG(ERROR)
-    * SYSLOG(FATAL)

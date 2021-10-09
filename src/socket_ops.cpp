@@ -28,7 +28,7 @@ namespace {
         flags |= O_NONBLOCK;
         int ret = ::fcntl(sockfd, F_SETFL, flags);
         if (ret < 0) {
-            SYSLOG(ERROR) << "SetNonBlockAndCloseOnExec";
+            LOG(ERROR) << "SetNonBlockAndCloseOnExec";
         }
 
         // close-on-exec
@@ -36,7 +36,7 @@ namespace {
         flags |= FD_CLOEXEC;
         ret = ::fcntl(sockfd, F_SETFD, flags);
         if (ret < 0) {
-            SYSLOG(ERROR) << "SetNonBlockAndCloseOnExec";
+            LOG(ERROR) << "SetNonBlockAndCloseOnExec";
         }
     }
 }
@@ -53,7 +53,7 @@ namespace rift::sockets {
 #else
         int sock_fd = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
         if (sock_fd < 0) {
-            SYSLOG(FATAL) << "sockets::CreateNonblockingOrDie";
+            LOG(FATAL) << "sockets::CreateNonblockingOrDie";
         }
 #endif
         return sock_fd;
@@ -62,14 +62,14 @@ namespace rift::sockets {
     void BindOrDie(int sock_fd, const struct sockaddr_in &addr) {
         int ret = ::bind(sock_fd, sockaddr_cast(&addr), sizeof addr);
         if (ret < 0) {
-            SYSLOG(FATAL) << "sockets::BindOrDie";
+            LOG(FATAL) << "sockets::BindOrDie";
         }
     }
 
     void ListenOrDie(int sock_fd) {
         int ret = ::listen(sock_fd, SOMAXCONN);
         if (ret < 0) {
-            SYSLOG(FATAL) << "sockets::ListenOrDie";
+            LOG(FATAL) << "sockets::ListenOrDie";
         }
     }
 
@@ -114,7 +114,7 @@ namespace rift::sockets {
 
     void Close(int sock_fd) {
         if (::close(sock_fd) < 0) {
-            SYSLOG(ERROR) << "sockets::Close";
+            LOG(ERROR) << "sockets::Close";
         }
     }
 
@@ -129,7 +129,7 @@ namespace rift::sockets {
         addr->sin_family = AF_INET;
         addr->sin_port = HostToNetwork16(port);
         if (::inet_pton(AF_INET, ip, &addr->sin_addr) <= 0) {
-            SYSLOG(ERROR) << "sockets::FromHostPort";
+            LOG(ERROR) << "sockets::FromHostPort";
         }
     }
 
@@ -138,7 +138,7 @@ namespace rift::sockets {
         bzero(&local_addr, sizeof local_addr);
         socklen_t addrlen = sizeof(local_addr);
         if (::getsockname(sock_fd, sockaddr_cast(&local_addr), &addrlen) < 0) {
-            SYSLOG(ERROR) << "sockets::GetLocalAddr";
+            LOG(ERROR) << "sockets::GetLocalAddr";
         }
         return local_addr;
     }
