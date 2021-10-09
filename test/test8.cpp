@@ -21,10 +21,12 @@ void OnConnection(const rift::TcpConnectionPtr &conn) {
 }
 
 void OnMessage(const rift::TcpConnectionPtr &conn,
-               const char *data,
-               ssize_t len) {
+               rift::Buffer* buf,
+               rift::TimePoint receive_time) {
     printf("onMessage(): received %zd bytes from connection [%s]\n",
-           len, conn->Name().c_str());
+           buf->ReadableBytes(), conn->Name().c_str());
+
+    printf("OnMessage(): [%s]\n", buf->RetrieveAsString().c_str());
 }
 
 int main(int argc, char **argv) {

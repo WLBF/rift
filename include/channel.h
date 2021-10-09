@@ -6,6 +6,7 @@
 #define RIFT_CHANNEL_H
 
 #include <functional>
+#include "time_point.h"
 
 namespace rift {
 
@@ -21,6 +22,7 @@ namespace rift {
 
     public:
         using EventCallback = std::function<void()>;
+        using ReadEventCallback = std::function<void(TimePoint)>;
 
         Channel(EventLoop *loop, int fd);
 
@@ -30,9 +32,9 @@ namespace rift {
 
         ~Channel();
 
-        void HandleEvent();
+        void HandleEvent(TimePoint receive_time);
 
-        void SetReadCallback(const EventCallback &cb) { read_callback_ = cb; }
+        void SetReadCallback(const ReadEventCallback &cb) { read_callback_ = cb; }
 
         void SetWriteCallback(const EventCallback &cb) { write_callback_ = cb; }
 
@@ -81,7 +83,7 @@ namespace rift {
 
         bool event_handling_;
 
-        EventCallback read_callback_;
+        ReadEventCallback read_callback_;
         EventCallback write_callback_;
         EventCallback error_callback_;
         EventCallback close_callback_;

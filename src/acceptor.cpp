@@ -16,7 +16,7 @@ namespace rift {
               listening_(false) {
         accept_socket_.SetReuseAddr(true);
         accept_socket_.BindAddress(listen_addr);
-        accept_channel_.SetReadCallback([this] { HandleRead(); });
+        accept_channel_.SetReadCallback([this](TimePoint) { HandleRead(); });
     }
 
     void Acceptor::Listen() {

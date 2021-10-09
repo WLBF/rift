@@ -26,13 +26,13 @@ namespace rift {
               peer_addr_(peer_addr) {
 
         VLOG(4) << "TcpConnection::ctor[" << name_ << "] at " << this
-                  << " fd=" << socket_->Fd();
-        channel_->SetReadCallback([this] { HandleRead(); });
+                << " fd=" << socket_->Fd();
+        channel_->SetReadCallback([this](TimePoint receive_time) { HandleRead(receive_time); });
     }
 
     TcpConnection::~TcpConnection() {
-        VLOG(4)  << "TcpConnection::dtor[" << name_ << "] at " << this
-                  << " fd=" << channel_->Fd();
+        VLOG(4) << "TcpConnection::dtor[" << name_ << "] at " << this
+                << " fd=" << channel_->Fd();
     }
 
     void TcpConnection::ConnectEstablished() {
@@ -52,14 +52,16 @@ namespace rift {
         loop_->RemoveChannel(channel_.get());
     }
 
-    void TcpConnection::HandleRead() {
-        char buf[65536];
-        ssize_t n = ::read(channel_->Fd(), buf, sizeof buf);
+    void TcpConnection::HandleRead(TimePoint receive_time) {
+        int saved_errno = 0;
+        ssize_t n = input_buffer_.ReadFd(channel_->Fd(), &saved_errno);
         if (n > 0) {
-            message_callback_(shared_from_this(), buf, n);
+            message_callback_(shared_from_this(), &input_buffer_, receive_time);
         } else if (n == 0) {
             HandleClose();
         } else {
+            errno = saved_errno;
+            LOG(ERROR) << "TcpConnection::HandleRead";
             HandleError();
         }
     }

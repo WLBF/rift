@@ -36,11 +36,11 @@ namespace rift {
         VLOG(5) << "EventLoop created " << this << " in thread " << thread_id_;
         if (t_loop_in_this_thread) {
             LOG(FATAL) << "Another EventLoop " << t_loop_in_this_thread
-                      << " exists in this thread " << thread_id_;
+                       << " exists in this thread " << thread_id_;
         } else {
             t_loop_in_this_thread = this;
         }
-        wakeup_channel_->SetReadCallback([this] { HandleRead(); });
+        wakeup_channel_->SetReadCallback([this](TimePoint) { HandleRead(); });
         // we are always reading the wakeup_fd
         wakeup_channel_->EnableReading();
     }
@@ -70,7 +70,7 @@ namespace rift {
             active_channels_.clear();
             poll_return_time_ = poller_->Poll(k_poll_time_ms, &active_channels_);
             for (auto &ch: active_channels_) {
-                ch->HandleEvent();
+                ch->HandleEvent(poll_return_time_);
             }
             DoPendingFunctors();
         }

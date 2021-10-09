@@ -7,9 +7,11 @@
 
 int main(int argc, char **argv) {
     ::google::InitGoogleLogging(argv[0]);
+    printf("%ld started!\n", std::chrono::system_clock::now().time_since_epoch().count());
     rift::EventLoop loop, *p_loop = &loop;
 
-    std::function<void()> timeout = [=](){
+    std::function<void(rift::TimePoint)> timeout = [=](rift::TimePoint receive_time){
+        printf("%ld Timeout!\n", std::chrono::system_clock::now().time_since_epoch().count());
         p_loop->Quit();
     };
 

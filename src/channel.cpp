@@ -22,7 +22,7 @@ namespace rift {
         assert(!event_handling_);
     }
 
-    void Channel::HandleEvent() {
+    void Channel::HandleEvent(TimePoint receive_time) {
 
         if (revents_ & POLLNVAL) {
             LOG(WARNING) << "Channel::HandleEvent() POLLNVAL";
@@ -36,7 +36,7 @@ namespace rift {
             if (error_callback_) error_callback_();
         }
         if (revents_ & (POLLIN | POLLPRI | POLLRDHUP)) {
-            if (read_callback_) read_callback_();
+            if (read_callback_) read_callback_(receive_time);
         }
         if (revents_ & POLLOUT) {
             if (write_callback_) write_callback_();

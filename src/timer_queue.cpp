@@ -40,7 +40,7 @@ namespace rift::detail {
         uint64_t how_many;
         ssize_t n = ::read(timer_fd, &how_many, sizeof how_many);
         VLOG(5) << "TimerQueue::handleRead() " << how_many << " at "
-                  << std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
+                << std::chrono::time_point_cast<std::chrono::milliseconds>(now).time_since_epoch().count();
         if (n != sizeof how_many) {
             LOG(ERROR) << "TimerQueue::handleRead() reads " << n << " bytes instead of 8";
         }
@@ -69,7 +69,7 @@ TimerQueue::TimerQueue(EventLoop *loop)
           timer_fd_(CreateTimerFd()),
           timer_fd_channel_(loop, timer_fd_),
           timers_() {
-    timer_fd_channel_.SetReadCallback([this] { HandleRead(); });
+    timer_fd_channel_.SetReadCallback([this](TimePoint) { HandleRead(); });
     // we are always reading the timer_fd, we disarm it with timerfd_settime.
     timer_fd_channel_.EnableReading();
 }
@@ -104,7 +104,7 @@ void TimerQueue::HandleRead() {
     std::vector<Entry> expired = GetExpired(now);
 
     // safe to call outside critical section
-    for (auto &it : expired) {
+    for (auto &it: expired) {
         it.second->Run();
     }
 
@@ -120,7 +120,7 @@ std::vector<TimerQueue::Entry> TimerQueue::GetExpired(TimePoint now) {
 }
 
 void TimerQueue::Reset(std::vector<Entry> &&expired, TimePoint now) {
-    for (auto &entry : expired) {
+    for (auto &entry: expired) {
         if (entry.second->Repeat()) {
             entry.second->Restart(now);
             Insert(std::move(entry));

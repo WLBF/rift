@@ -8,6 +8,7 @@
 #include "inet_address.h"
 #include "callbacks.h"
 #include "socket.h"
+#include "buffer.h"
 #include <memory>
 
 namespace rift {
@@ -60,7 +61,7 @@ namespace rift {
 
         void SetState(StateE s) { state_ = s; }
 
-        void HandleRead();
+        void HandleRead(TimePoint receive_time);
 
         void HandleWrite();
 
@@ -79,6 +80,7 @@ namespace rift {
         ConnectionCallback connection_callback_;
         MessageCallback message_callback_;
         CloseCallback close_callback_;
+        Buffer input_buffer_;
     };
 
     using TcpConnectionPtr = std::shared_ptr<TcpConnection>;
