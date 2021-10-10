@@ -8,6 +8,7 @@
 #include <glog/logging.h>
 #include <netinet/in.h>
 #include <strings.h>  // bzero
+#include <netinet/tcp.h>
 
 namespace rift {
 
@@ -41,7 +42,15 @@ namespace rift {
         }
     }
 
-    void Socket::ShutdownWrite() {
+    void Socket::ShutdownWrite() const {
         sockets::ShutdownWrite(sock_fd_);
+    }
+
+    void Socket::SetTcpNoDelay(bool on) const {
+        int opt_val = on ? 1 : 0;
+        int ret = ::setsockopt(sock_fd_, IPPROTO_TCP, TCP_NODELAY, &opt_val, sizeof opt_val);
+        if (ret < 0) {
+            LOG(FATAL) << "socket::SetTcpNoDelay";
+        }
     }
 }

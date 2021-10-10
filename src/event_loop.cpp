@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <glog/logging.h>
+#include <signal.h>
 #include <sys/eventfd.h>
 
 
@@ -24,6 +25,15 @@ namespace rift {
         }
         return evt_fd;
     }
+
+    class IgnoreSigPipe {
+    public:
+        IgnoreSigPipe() {
+            ::signal(SIGPIPE, SIG_IGN);
+        }
+    };
+
+    [[maybe_unused]] IgnoreSigPipe init_obj; // Disable SIGPIPE
 
     EventLoop::EventLoop()
             : looping_(false), quit_(false),

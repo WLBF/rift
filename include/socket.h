@@ -45,7 +45,12 @@ namespace rift {
         ///
         void SetReuseAddr(bool on) const;
 
-        void ShutdownWrite();
+        void ShutdownWrite() const;
+
+        ///
+        /// Enable/disable TCP_NODELAY (disable/enable Nagle's algorithm).
+        ///
+        void SetTcpNoDelay(bool on) const;
 
     private:
         const int sock_fd_;

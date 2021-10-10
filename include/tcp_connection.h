@@ -47,6 +47,10 @@ namespace rift {
         // Thread safe.
         void Shutdown();
 
+        void SetTcpNoDelay(bool on);
+
+        // TODO: SetTcpKeepAlive();
+
         void SetConnectionCallback(const ConnectionCallback &cb) { connection_callback_ = cb; }
 
         void SetMessageCallback(const MessageCallback &cb) { message_callback_ = cb; }

@@ -158,4 +158,8 @@ namespace rift {
             socket_->ShutdownWrite();
         }
     }
+
+    void TcpConnection::SetTcpNoDelay(bool on) {
+        socket_->SetTcpNoDelay(on);
+    }
 }
