@@ -18,7 +18,7 @@ namespace rift {
     ///
     class Timer {
     public:
-        Timer(TimerCallback cb, TimePoint when, double interval)
+        Timer(TimerCallback cb, time::TimePoint when, double interval)
                 : callback_(std::move(cb)),
                   expiration_(when),
                   interval_(interval), repeat_(interval > 0.0) {}
@@ -31,15 +31,15 @@ namespace rift {
             callback_();
         }
 
-        [[nodiscard]] std::optional<TimePoint> Expiration() const { return expiration_; }
+        [[nodiscard]] std::optional<time::TimePoint> Expiration() const { return expiration_; }
 
         [[nodiscard]] bool Repeat() const { return repeat_; }
 
-        void Restart(TimePoint now);
+        void Restart(time::TimePoint now);
 
     private:
         const TimerCallback callback_;
-        std::optional<TimePoint> expiration_;
+        std::optional<time::TimePoint> expiration_;
         const double interval_;
         const bool repeat_;
     };

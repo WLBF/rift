@@ -5,9 +5,9 @@
 #include "timer.h"
 
 namespace rift {
-    void Timer::Restart(TimePoint now) {
+    void Timer::Restart(time::TimePoint now) {
         if (repeat_) {
-            expiration_ = now + Duration(interval_);
+            expiration_ = now + time::Duration(interval_);
         } else {
             expiration_ = std::nullopt;
         }

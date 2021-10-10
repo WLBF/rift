@@ -22,7 +22,7 @@ namespace rift {
         assert(!event_handling_);
     }
 
-    void Channel::HandleEvent(TimePoint receive_time) {
+    void Channel::HandleEvent(time::TimePoint receive_time) {
 
         if (revents_ & POLLNVAL) {
             LOG(WARNING) << "Channel::HandleEvent() POLLNVAL";

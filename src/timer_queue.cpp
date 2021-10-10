@@ -10,7 +10,7 @@
 #include "timer_queue.h"
 #include "timer.h"
 #include "timer_id.h"
-#include "time_point.h"
+#include "time.h"
 
 namespace rift::detail {
     int CreateTimerFd() {
@@ -21,22 +21,22 @@ namespace rift::detail {
         return timer_fd;
     }
 
-    struct timespec HowMuchTimeFromNow(TimePoint when) {
+    struct timespec HowMuchTimeFromNow(time::TimePoint when) {
         int64_t microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-                when - std::chrono::system_clock::now()).count();
+                when - time::Now()).count();
 
         if (microseconds < 100) {
             microseconds = 100;
         }
         struct timespec ts{};
         ts.tv_sec = static_cast<time_t>(
-                microseconds / micro_seconds_per_second);
+                microseconds / time::micro_seconds_per_second);
         ts.tv_nsec = static_cast<long>(
-                (microseconds % micro_seconds_per_second) * 1000);
+                (microseconds % time::micro_seconds_per_second) * 1000);
         return ts;
     }
 
-    void ReadTimerFd(int timer_fd, TimePoint now) {
+    void ReadTimerFd(int timer_fd, time::TimePoint now) {
         uint64_t how_many;
         ssize_t n = ::read(timer_fd, &how_many, sizeof how_many);
         VLOG(5) << "TimerQueue::handleRead() " << how_many << " at "
@@ -46,7 +46,7 @@ namespace rift::detail {
         }
     }
 
-    void ResetTimerFd(int timer_fd, TimePoint expiration) {
+    void ResetTimerFd(int timer_fd, time::TimePoint expiration) {
         // wake up loop by timerfd_settime()
         struct itimerspec newValue{};
         struct itimerspec oldValue{};
@@ -69,7 +69,7 @@ TimerQueue::TimerQueue(EventLoop *loop)
           timer_fd_(CreateTimerFd()),
           timer_fd_channel_(loop, timer_fd_),
           timers_() {
-    timer_fd_channel_.SetReadCallback([this](TimePoint) { HandleRead(); });
+    timer_fd_channel_.SetReadCallback([this](time::TimePoint) { HandleRead(); });
     // we are always reading the timer_fd, we disarm it with timerfd_settime.
     timer_fd_channel_.EnableReading();
 }
@@ -80,14 +80,14 @@ TimerQueue::~TimerQueue() {
 }
 
 TimerId TimerQueue::addTimer(const TimerCallback &cb,
-                             TimePoint when,
+                             time::TimePoint when,
                              double interval) {
     auto *timer = new Timer(cb, when, interval);
     loop_->RunInLoop([this, when, timer] { AddTimerInLoop(when, timer); });
     return TimerId(timer);
 }
 
-void TimerQueue::AddTimerInLoop(TimePoint when, Timer *timer) {
+void TimerQueue::AddTimerInLoop(time::TimePoint when, Timer *timer) {
     loop_->AssetInLoopThread();
     bool earliest_changed = Insert(Entry{when, timer});
 
@@ -98,7 +98,7 @@ void TimerQueue::AddTimerInLoop(TimePoint when, Timer *timer) {
 
 void TimerQueue::HandleRead() {
     loop_->AssetInLoopThread();
-    TimePoint now = std::chrono::system_clock::now();
+    time::TimePoint now = time::Now();
     ReadTimerFd(timer_fd_, now);
 
     std::vector<Entry> expired = GetExpired(now);
@@ -111,7 +111,7 @@ void TimerQueue::HandleRead() {
     Reset(std::move(expired), now);
 }
 
-std::vector<TimerQueue::Entry> TimerQueue::GetExpired(TimePoint now) {
+std::vector<TimerQueue::Entry> TimerQueue::GetExpired(time::TimePoint now) {
     auto it = timers_.lower_bound(now);
     assert(it == timers_.end() || now < it->first);
     std::vector<Entry> expired(std::make_move_iterator(timers_.begin()), std::make_move_iterator(it));
@@ -119,7 +119,7 @@ std::vector<TimerQueue::Entry> TimerQueue::GetExpired(TimePoint now) {
     return expired;
 }
 
-void TimerQueue::Reset(std::vector<Entry> &&expired, TimePoint now) {
+void TimerQueue::Reset(std::vector<Entry> &&expired, time::TimePoint now) {
     for (auto &entry: expired) {
         if (entry.second->Repeat()) {
             entry.second->Restart(now);
@@ -138,7 +138,7 @@ void TimerQueue::Reset(std::vector<Entry> &&expired, TimePoint now) {
 bool TimerQueue::Insert(TimerQueue::Entry &&entry) {
     bool earliest_changed = false;
     assert(entry.second->Expiration().has_value());
-    TimePoint when = entry.second->Expiration().value();
+    time::TimePoint when = entry.second->Expiration().value();
     auto it = timers_.begin();
     if (it == timers_.end() || when < it->first) {
         earliest_changed = true;

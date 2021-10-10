@@ -34,20 +34,20 @@ namespace rift {
         /// repeats if @c interval > 0.0.
         ///
         /// Must be thread safe. Usually be called from other threads.
-        TimerId addTimer(const TimerCallback &cb, TimePoint when, double interval);
+        TimerId addTimer(const TimerCallback &cb, time::TimePoint when, double interval);
 
 
     private:
-        using Entry = std::pair<TimePoint, std::unique_ptr<Timer>>;
-        using TimerList = std::multimap<TimePoint, std::unique_ptr<Timer>>;
+        using Entry = std::pair<time::TimePoint, std::unique_ptr<Timer>>;
+        using TimerList = std::multimap<time::TimePoint, std::unique_ptr<Timer>>;
 
         // called when timer_fd alarms
         void HandleRead();
 
         // move out all expired timers
-        std::vector<Entry> GetExpired(TimePoint now);
+        std::vector<Entry> GetExpired(time::TimePoint now);
 
-        void Reset(std::vector<Entry> &&expired, TimePoint now);
+        void Reset(std::vector<Entry> &&expired, time::TimePoint now);
 
         bool Insert(Entry &&entry);
 
@@ -57,7 +57,7 @@ namespace rift {
         // Timer list sorted by expiration;
         TimerList timers_;
 
-        void AddTimerInLoop(TimePoint when, Timer *timer);
+        void AddTimerInLoop(time::TimePoint when, Timer *timer);
     };
 
 }

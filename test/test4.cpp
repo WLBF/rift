@@ -8,13 +8,13 @@ int main(int argc, char **argv) {
     ::google::InitGoogleLogging(argv[0]);
 
     printf("pid = %d, tid = %lu\n", getpid(), GetTid());
-    printf("now %ld\n", std::chrono::system_clock::now().time_since_epoch().count());
+    printf("now %f\n", rift::time::Now().time_since_epoch().count());
 
     rift::EventLoop loop, *p_loop = &loop;
 
     int cnt = 0;
     auto print = [&](const char *msg) {
-        printf("msg %s %ld\n", msg, std::chrono::system_clock::now().time_since_epoch().count());
+        printf("msg %s %f\n", msg, rift::time::Now().time_since_epoch().count());
         if (++cnt == 20) {
             p_loop->Quit();
         }

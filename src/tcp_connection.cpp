@@ -27,7 +27,7 @@ namespace rift {
 
         VLOG(4) << "TcpConnection::ctor[" << name_ << "] at " << this
                 << " fd=" << socket_->Fd();
-        channel_->SetReadCallback([this](TimePoint receive_time) { HandleRead(receive_time); });
+        channel_->SetReadCallback([this](time::TimePoint receive_time) { HandleRead(receive_time); });
     }
 
     TcpConnection::~TcpConnection() {
@@ -52,7 +52,7 @@ namespace rift {
         loop_->RemoveChannel(channel_.get());
     }
 
-    void TcpConnection::HandleRead(TimePoint receive_time) {
+    void TcpConnection::HandleRead(time::TimePoint receive_time) {
         int saved_errno = 0;
         ssize_t n = input_buffer_.ReadFd(channel_->Fd(), &saved_errno);
         if (n > 0) {

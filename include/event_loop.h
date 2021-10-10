@@ -56,7 +56,7 @@ namespace rift {
         ///
         /// Time when poll returns, usually means data arrival.
         ///
-        [[nodiscard]] TimePoint PollReturnTime() const { return poll_return_time_; }
+        [[nodiscard]] time::TimePoint PollReturnTime() const { return poll_return_time_; }
 
         /// Runs callback immediately in the loop thread.
         /// It wakes up the loop, and run the cb.
@@ -72,7 +72,7 @@ namespace rift {
         ///
         /// Runs callback at 'time'.
         ///
-        TimerId RunAt(const TimePoint &time, const TimerCallback &cb);
+        TimerId RunAt(const time::TimePoint &time, const TimerCallback &cb);
 
         ///
         /// Runs callback after @c delay seconds.
@@ -88,6 +88,7 @@ namespace rift {
         void Wakeup() const;
 
         void UpdateChannel(Channel *channel);
+
         void RemoveChannel(Channel *channel);
 
     private:
@@ -104,7 +105,7 @@ namespace rift {
         bool quit_; /* atomic */
         bool calling_pending_fucntors_; /* atomic */
         const std::thread::id thread_id_;
-        TimePoint poll_return_time_;
+        time::TimePoint poll_return_time_;
         std::unique_ptr<Poller> poller_;
         std::unique_ptr<TimerQueue> timer_queue_;
         int wakeup_fd_;

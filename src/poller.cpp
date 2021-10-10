@@ -14,7 +14,7 @@ namespace rift {
 
     Poller::~Poller() = default;
 
-    TimePoint Poller::Poll(int timeout_ms, Poller::ChannelList *active_channels) {
+    time::TimePoint Poller::Poll(int timeout_ms, Poller::ChannelList *active_channels) {
         int num_events = ::poll(pollfds_.data(), pollfds_.size(), timeout_ms);
         if (num_events > 0) {
             VLOG(5) << num_events << "events happened";
@@ -24,7 +24,7 @@ namespace rift {
         } else {
             LOG(ERROR) << "Poller::poll()";
         }
-        return std::chrono::system_clock::now();
+        return time::Now();
     }
 
     void Poller::FillActiveChannels(int num_events, Poller::ChannelList *active_channels) const {

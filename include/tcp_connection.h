@@ -61,7 +61,7 @@ namespace rift {
 
         void SetState(StateE s) { state_ = s; }
 
-        void HandleRead(TimePoint receive_time);
+        void HandleRead(time::TimePoint receive_time);
 
         void HandleWrite();
 

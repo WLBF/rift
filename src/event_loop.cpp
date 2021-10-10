@@ -40,7 +40,7 @@ namespace rift {
         } else {
             t_loop_in_this_thread = this;
         }
-        wakeup_channel_->SetReadCallback([this](TimePoint) { HandleRead(); });
+        wakeup_channel_->SetReadCallback([this](time::TimePoint) { HandleRead(); });
         // we are always reading the wakeup_fd
         wakeup_channel_->EnableReading();
     }
@@ -98,17 +98,17 @@ namespace rift {
         poller_->RemoveChannel(channel);
     }
 
-    TimerId EventLoop::RunAt(const TimePoint &time, const TimerCallback &cb) {
+    TimerId EventLoop::RunAt(const time::TimePoint &time, const TimerCallback &cb) {
         return timer_queue_->addTimer(cb, time, 0);
     }
 
     TimerId EventLoop::RunAfter(double delay, const TimerCallback &cb) {
-        auto time = std::chrono::system_clock::now() + Duration(delay);
+        auto time = time::Now() + time::Duration(delay);
         return RunAt(time, cb);
     }
 
     TimerId EventLoop::RunEvery(double interval, const TimerCallback &cb) {
-        auto time = std::chrono::system_clock::now() + Duration(interval);
+        auto time = time::Now() + time::Duration(interval);
         return timer_queue_->addTimer(cb, time, interval);
     }
 

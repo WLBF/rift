@@ -20,7 +20,7 @@ namespace rift {
 
     using TimerCallback = std::function<void()>;
     using ConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
-    using MessageCallback = std::function<void(const TcpConnectionPtr &, Buffer *buf, TimePoint)>;
+    using MessageCallback = std::function<void(const TcpConnectionPtr &, Buffer *buf, time::TimePoint)>;
     using CloseCallback = std::function<void(const TcpConnectionPtr &)>;
 }
 

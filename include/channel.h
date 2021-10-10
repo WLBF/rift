@@ -22,7 +22,7 @@ namespace rift {
 
     public:
         using EventCallback = std::function<void()>;
-        using ReadEventCallback = std::function<void(TimePoint)>;
+        using ReadEventCallback = std::function<void(time::TimePoint)>;
 
         Channel(EventLoop *loop, int fd);
 
@@ -32,7 +32,7 @@ namespace rift {
 
         ~Channel();
 
-        void HandleEvent(TimePoint receive_time);
+        void HandleEvent(time::TimePoint receive_time);
 
         void SetReadCallback(const ReadEventCallback &cb) { read_callback_ = cb; }
 

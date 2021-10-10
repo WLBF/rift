@@ -37,7 +37,7 @@ namespace rift {
 
         /// Polls the I/O events.
         /// Must be called in the loop thread
-        TimePoint Poll(int timeout_ms, ChannelList *active_channels);
+        time::TimePoint Poll(int timeout_ms, ChannelList *active_channels);
 
         /// Changes the interested I/O events.
         /// Must be called in the loop thread.
