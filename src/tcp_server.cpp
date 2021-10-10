@@ -53,6 +53,7 @@ namespace rift {
         connections_[conn_name] = conn;
         conn->SetConnectionCallback(connection_callback_);
         conn->SetMessageCallback(message_callback_);
+        conn->SetWriteCompleteCallback(write_complete_callback_);
         conn->SetCloseCallback([this](const TcpConnectionPtr &conn) { RemoveConnection(conn); });
         conn->ConnectEstablished();
     }

@@ -42,6 +42,10 @@ namespace rift {
         /// Not thread safe.
         void SetMessageCallback(const MessageCallback &cb) { message_callback_ = cb; }
 
+        /// Set write complete callback.
+        /// Not thread safe.
+        void SetWriteCompleteCallback(const WriteCompleteCallback &cb) { write_complete_callback_ = cb; }
+
     private:
         using ConnectionMap = std::map<std::string, TcpConnectionPtr>;
 
@@ -55,6 +59,7 @@ namespace rift {
         std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
         MessageCallback message_callback_;
         ConnectionCallback connection_callback_;
+        WriteCompleteCallback write_complete_callback_;
         bool started_;
         int next_conn_id_; // always in loop thread
         ConnectionMap connections_;

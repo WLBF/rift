@@ -74,6 +74,9 @@ namespace rift {
                 output_buffer_.Retrieve(n);
                 if (output_buffer_.ReadableBytes() == 0) {
                     channel_->DisableWriting();
+                    if (write_complete_callback_) {
+                        loop_->QueueInLoop([this, conn = shared_from_this()] { write_complete_callback_(conn); });
+                    }
                     if (state_ == k_disconnecting) {
                         ShutDownInLoop();
                     }
@@ -133,6 +136,8 @@ namespace rift {
             if (nwrote >= 0) {
                 if (nwrote < message.size()) {
                     VLOG(5) << "I am going to write more data";
+                } else if (write_complete_callback_) {
+                    loop_->QueueInLoop([this, conn = shared_from_this()] { write_complete_callback_(conn); });
                 }
             } else {
                 nwrote = 0;

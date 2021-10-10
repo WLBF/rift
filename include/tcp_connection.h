@@ -57,6 +57,8 @@ namespace rift {
 
         void SetCloseCallback(const CloseCallback &cb) { close_callback_ = cb; }
 
+        void SetWriteCompleteCallback(const WriteCompleteCallback &cb) { write_complete_callback_ = cb; }
+
         /// Internal use only.
 
         // called when TcpServer accepts a new connection
@@ -95,6 +97,8 @@ namespace rift {
         ConnectionCallback connection_callback_;
         MessageCallback message_callback_;
         CloseCallback close_callback_;
+        WriteCompleteCallback write_complete_callback_;
+        // TODO: add HighWaterMarkCallback
         Buffer input_buffer_;
         Buffer output_buffer_;
     };

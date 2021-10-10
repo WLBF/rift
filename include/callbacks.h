@@ -22,6 +22,7 @@ namespace rift {
     using ConnectionCallback = std::function<void(const TcpConnectionPtr &)>;
     using MessageCallback = std::function<void(const TcpConnectionPtr &, Buffer *buf, time::TimePoint)>;
     using CloseCallback = std::function<void(const TcpConnectionPtr &)>;
+    using WriteCompleteCallback = std::function<void(const TcpConnectionPtr &)>;
 }
 
 #endif //RIFT_CALLBACKS_H
