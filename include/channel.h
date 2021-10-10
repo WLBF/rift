@@ -55,9 +55,23 @@ namespace rift {
             Update();
         }
 
+        void EnableWriting() {
+            events_ |= k_write_event;
+            Update();
+        }
+
+        void DisableWriting() {
+            events_ &= ~k_write_event;
+            Update();
+        }
+
         void DisableAll() {
             events_ = k_none_event;
             Update();
+        }
+
+        [[nodiscard]] bool IsWriting() const {
+            return events_ & k_write_event;
         }
 
         // for Poller

@@ -45,7 +45,7 @@ namespace rift {
 
     void TcpConnection::ConnectDestroyed() {
         loop_->AssetInLoopThread();
-        assert(state_ == k_connected);
+        assert(state_ == k_connected || state_ == k_disconnecting);
         SetState(k_disconnected);
         channel_->DisableAll();
         connection_callback_(shared_from_this());
@@ -67,13 +67,31 @@ namespace rift {
     }
 
     void TcpConnection::HandleWrite() {
-
+        loop_->AssetInLoopThread();
+        if (channel_->IsWriting()) {
+            ssize_t n = ::write(channel_->Fd(), output_buffer_.Peek(), output_buffer_.ReadableBytes());
+            if (n > 0) {
+                output_buffer_.Retrieve(n);
+                if (output_buffer_.ReadableBytes() == 0) {
+                    channel_->DisableWriting();
+                    if (state_ == k_disconnecting) {
+                        ShutDownInLoop();
+                    }
+                } else {
+                    VLOG(5) << "I am going to write more data";
+                }
+            } else {
+                LOG(ERROR) << "TcpConnection::HandleWrite";
+            }
+        } else {
+            VLOG(5) << "Connection is down, no more writing";
+        }
     }
 
     void TcpConnection::HandleClose() {
         loop_->AssetInLoopThread();
         VLOG(5) << "TcpConnection::HandleClose state = " << state_;
-        assert(state_ == k_connected);
+        assert(state_ == k_connected || state_ == k_disconnecting);
         // we don't close fd, leave it  to destructor, so we can find leaks easily.
         channel_->DisableAll();
         // must be the last line;
@@ -84,5 +102,60 @@ namespace rift {
         int err = sockets::GetSocketError(channel_->Fd());
         LOG(ERROR) << "TcpConnection::HandleError [" << name_
                    << "] - SO_ADDR = " << err << " " << strerror(err);
+    }
+
+    void TcpConnection::Send(const std::string &message) {
+        // FIXME: maybe move message here
+        if (state_ == k_connected) {
+            if (loop_->IsInLoopThread()) {
+                SendInLoop(message);
+            } else {
+                // FIXME: shared_from_this?
+                loop_->RunInLoop([this, message] { SendInLoop(message); });
+            }
+        }
+    }
+
+    void TcpConnection::Shutdown() {
+        // FIXME: use compare and swap
+        if (state_ == k_connected) {
+            SetState(k_disconnecting);
+            loop_->RunInLoop([ptr = shared_from_this()] { ptr->ShutDownInLoop(); });
+        }
+    }
+
+    void TcpConnection::SendInLoop(const std::string &message) {
+        loop_->AssetInLoopThread();
+        ssize_t nwrote = 0;
+        // if nothing in output queue, try to write directly
+        if (!channel_->IsWriting() && output_buffer_.ReadableBytes() == 0) {
+            nwrote = ::write(channel_->Fd(), message.data(), message.size());
+            if (nwrote >= 0) {
+                if (nwrote < message.size()) {
+                    VLOG(5) << "I am going to write more data";
+                }
+            } else {
+                nwrote = 0;
+                if (errno != EWOULDBLOCK) {
+                    LOG(ERROR) << "TcpConnection::SendInLoop";
+                }
+            }
+        }
+
+        assert(nwrote >= 0);
+        if (nwrote < message.size()) {
+            output_buffer_.Append(message.data(), message.size());
+            if (!channel_->IsWriting()) {
+                channel_->EnableReading();
+            }
+        }
+    }
+
+    void TcpConnection::ShutDownInLoop() {
+        loop_->AssetInLoopThread();
+        if (!channel_->IsWriting()) {
+            // we are not writing
+            socket_->ShutdownWrite();
+        }
     }
 }

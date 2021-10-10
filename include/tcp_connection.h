@@ -40,6 +40,13 @@ namespace rift {
 
         bool Connected() const { return state_ == k_connected; }
 
+        //void send(const void* message, size_t len);
+        // Thread safe.
+        void Send(const std::string &message);
+
+        // Thread safe.
+        void Shutdown();
+
         void SetConnectionCallback(const ConnectionCallback &cb) { connection_callback_ = cb; }
 
         void SetMessageCallback(const MessageCallback &cb) { message_callback_ = cb; }
@@ -56,7 +63,7 @@ namespace rift {
 
     private:
         enum StateE {
-            k_connecting, k_connected, k_disconnected,
+            k_connecting, k_connected, k_disconnecting, k_disconnected,
         };
 
         void SetState(StateE s) { state_ = s; }
@@ -68,6 +75,10 @@ namespace rift {
         void HandleClose();
 
         void HandleError();
+
+        void SendInLoop(const std::string &message);
+
+        void ShutDownInLoop();
 
         EventLoop *loop_;
         std::string name_;
@@ -81,6 +92,7 @@ namespace rift {
         MessageCallback message_callback_;
         CloseCallback close_callback_;
         Buffer input_buffer_;
+        Buffer output_buffer_;
     };
 
     using TcpConnectionPtr = std::shared_ptr<TcpConnection>;

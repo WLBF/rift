@@ -55,6 +55,8 @@ namespace rift::sockets {
     struct sockaddr_in GetLocalAddr(int sock_fd);
 
     int GetSocketError(int sock_fd);
+
+    void ShutdownWrite(int sock_fd);
 }
 
 #endif //RIFT_SOCKET_OPS_H

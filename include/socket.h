@@ -45,6 +45,8 @@ namespace rift {
         ///
         void SetReuseAddr(bool on) const;
 
+        void ShutdownWrite();
+
     private:
         const int sock_fd_;
     };

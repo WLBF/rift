@@ -40,4 +40,8 @@ namespace rift {
             LOG(FATAL) << "socket::SetReuseAddr";
         }
     }
+
+    void Socket::ShutdownWrite() {
+        sockets::ShutdownWrite(sock_fd_);
+    }
 }

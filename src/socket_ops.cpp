@@ -154,4 +154,10 @@ namespace rift::sockets {
             return opt_val;
         }
     }
+
+    void ShutdownWrite(int sock_fd) {
+        if (::shutdown(sock_fd, SHUT_WR) < 0) {
+            LOG(ERROR) << "sockets::ShutdownWrite";
+        }
+    }
 }
