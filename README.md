@@ -17,6 +17,6 @@ Replace `boost` and `muduo` library with C++11/17 features and `glog` library.
 * LOG(ERROR) - Always an error.
 * LOG(WARNING) - Something unexpected, but probably not an error.
 * Verbose Info Logging has multiple levels:
-    * VLOG(0) - Generally useful for this to ALWAYS be visible to an operator.
+    * VLOG(0) - Generally useful for this to always be visible to an operator.
     * VLOG(4) - Debug level verbosity.
     * VLOG(5) - Trace level verbosity.
