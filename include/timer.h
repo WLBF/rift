@@ -10,6 +10,7 @@
 #include <chrono>
 #include <utility>
 #include <optional>
+#include <atomic>
 
 namespace rift {
 
@@ -21,7 +22,9 @@ namespace rift {
         Timer(TimerCallback cb, time::TimePoint when, double interval)
                 : callback_(std::move(cb)),
                   expiration_(when),
-                  interval_(interval), repeat_(interval > 0.0) {}
+                  interval_(interval),
+                  repeat_(interval > 0.0),
+                  sequence_(seq_num_created_.fetch_add(1)) {}
 
         Timer(const Timer &) = delete;
 
@@ -37,11 +40,16 @@ namespace rift {
 
         void Restart(time::TimePoint now);
 
+        friend class TimerQueue;
+
     private:
         const TimerCallback callback_;
         std::optional<time::TimePoint> expiration_;
         const double interval_;
         const bool repeat_;
+        const int64_t sequence_;
+
+        static std::atomic_int64_t seq_num_created_;
     };
 }
 

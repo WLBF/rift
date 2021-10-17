@@ -72,17 +72,19 @@ namespace rift {
         ///
         /// Runs callback at 'time'.
         ///
-        TimerId RunAt(const time::TimePoint &time, const TimerCallback &cb);
+        TimerID RunAt(const time::TimePoint &time, const TimerCallback &cb);
 
         ///
         /// Runs callback after @c delay seconds.
         ///
-        TimerId RunAfter(double delay, const TimerCallback &cb);
+        TimerID RunAfter(double delay, const TimerCallback &cb);
 
         ///
         /// Runs callback every @c interval seconds.
         ///
-        TimerId RunEvery(double interval, const TimerCallback &cb);
+        TimerID RunEvery(double interval, const TimerCallback &cb);
+
+        void Cancel(TimerID timer_id);
 
         // internal use only
         void Wakeup() const;

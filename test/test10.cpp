@@ -8,6 +8,7 @@
 #include "tcp_connection.h"
 #include <cstdio>
 #include <unistd.h>
+#include <glog/logging.h>
 
 std::string message1;
 std::string message2;
@@ -36,7 +37,9 @@ void OnMessage(const rift::TcpConnectionPtr &conn,
     buf->RetrieveAll();
 }
 
-int main(int argc, char *argv[]) {
+
+int main(int argc, char **argv) {
+    ::google::InitGoogleLogging(argv[0]);
     printf("main(): pid = %d\n", getpid());
 
     int len1 = 100;

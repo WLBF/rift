@@ -7,6 +7,8 @@
 
 #include <memory>
 #include <map>
+#include <set>
+
 #include "callbacks.h"
 #include "time_point.h"
 #include "channel.h"
@@ -17,7 +19,7 @@ namespace rift {
 
     class Timer;
 
-    class TimerId;
+    class TimerID;
 
     ///
     /// A best efforts timer queue.
@@ -34,12 +36,20 @@ namespace rift {
         /// repeats if @c interval > 0.0.
         ///
         /// Must be thread safe. Usually be called from other threads.
-        TimerId addTimer(const TimerCallback &cb, time::TimePoint when, double interval);
+        TimerID addTimer(const TimerCallback &cb, time::TimePoint when, double interval);
+
+        void Cancel(TimerID timer_id);
 
 
     private:
-        using Entry = std::pair<time::TimePoint, std::unique_ptr<Timer>>;
-        using TimerList = std::multimap<time::TimePoint, std::unique_ptr<Timer>>;
+        using Key = std::pair<time::TimePoint, TimerID>;
+        using Entry = std::pair<Key, std::unique_ptr<Timer>>;
+        using TimerList = std::map<Key, std::unique_ptr<Timer>>;
+        using ActiveTimerSet = std::set<TimerID>;
+
+        void AddTimerInLoop(time::TimePoint when, Timer *timer);
+
+        void CancelInLoop(TimerID timer_id);
 
         // called when timer_fd alarms
         void HandleRead();
@@ -57,7 +67,10 @@ namespace rift {
         // Timer list sorted by expiration;
         TimerList timers_;
 
-        void AddTimerInLoop(time::TimePoint when, Timer *timer);
+        // for Cancel()
+        bool calling_expired_timers_{}; /* atomic */
+        ActiveTimerSet active_timers_;
+        ActiveTimerSet canceling_timers_;
     };
 
 }

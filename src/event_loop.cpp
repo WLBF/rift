@@ -108,16 +108,16 @@ namespace rift {
         poller_->RemoveChannel(channel);
     }
 
-    TimerId EventLoop::RunAt(const time::TimePoint &time, const TimerCallback &cb) {
+    TimerID EventLoop::RunAt(const time::TimePoint &time, const TimerCallback &cb) {
         return timer_queue_->addTimer(cb, time, 0);
     }
 
-    TimerId EventLoop::RunAfter(double delay, const TimerCallback &cb) {
+    TimerID EventLoop::RunAfter(double delay, const TimerCallback &cb) {
         auto time = time::Now() + time::Duration(delay);
         return RunAt(time, cb);
     }
 
-    TimerId EventLoop::RunEvery(double interval, const TimerCallback &cb) {
+    TimerID EventLoop::RunEvery(double interval, const TimerCallback &cb) {
         auto time = time::Now() + time::Duration(interval);
         return timer_queue_->addTimer(cb, time, interval);
     }
@@ -172,4 +172,7 @@ namespace rift {
         calling_pending_fucntors_ = false;
     }
 
+    void EventLoop::Cancel(TimerID timer_id) {
+        timer_queue_->Cancel(timer_id);
+    }
 }

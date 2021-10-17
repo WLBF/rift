@@ -112,6 +112,10 @@ namespace rift::sockets {
         return conn_fd;
     }
 
+    int Connect(int sock_fd, const struct sockaddr_in &addr) {
+        return ::connect(sock_fd, sockaddr_cast(&addr), sizeof addr);
+    }
+
     void Close(int sock_fd) {
         if (::close(sock_fd) < 0) {
             LOG(ERROR) << "sockets::Close";
@@ -159,5 +163,21 @@ namespace rift::sockets {
         if (::shutdown(sock_fd, SHUT_WR) < 0) {
             LOG(ERROR) << "sockets::ShutdownWrite";
         }
+    }
+
+    struct sockaddr_in GetPeerAddr(int sock_fd) {
+        struct sockaddr_in peer_addr{};
+        bzero(&peer_addr, sizeof peer_addr);
+        socklen_t addrlen = sizeof(peer_addr);
+        if (::getpeername(sock_fd, sockaddr_cast(&peer_addr), &addrlen) < 0) {
+            LOG(ERROR) << "sockets::GetPeerAddr";
+        }
+        return peer_addr;
+    }
+
+    bool IsSelfConnect(int sock_fd) {
+        struct sockaddr_in local_addr = GetLocalAddr(sock_fd);
+        struct sockaddr_in peer_addr = GetPeerAddr(sock_fd);
+        return local_addr.sin_port == peer_addr.sin_port && local_addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr;
     }
 }

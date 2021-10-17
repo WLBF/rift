@@ -10,7 +10,6 @@
 #include "timer_queue.h"
 #include "timer.h"
 #include "timer_id.h"
-#include "time.h"
 
 namespace rift::detail {
     int CreateTimerFd() {
@@ -79,17 +78,18 @@ TimerQueue::~TimerQueue() {
     // do not remove channel, since we're in  EventLoop::destructor();
 }
 
-TimerId TimerQueue::addTimer(const TimerCallback &cb,
+TimerID TimerQueue::addTimer(const TimerCallback &cb,
                              time::TimePoint when,
                              double interval) {
     auto *timer = new Timer(cb, when, interval);
     loop_->RunInLoop([this, when, timer] { AddTimerInLoop(when, timer); });
-    return TimerId(timer);
+    return TimerID(timer, timer->sequence_);
 }
 
 void TimerQueue::AddTimerInLoop(time::TimePoint when, Timer *timer) {
     loop_->AssetInLoopThread();
-    bool earliest_changed = Insert(Entry{when, timer});
+    auto timer_id = TimerID(timer, timer->sequence_);
+    bool earliest_changed = Insert(Entry{{when, timer_id}, timer});
 
     if (earliest_changed) {
         ResetTimerFd(timer_fd_, timer->Expiration().value());
@@ -103,25 +103,36 @@ void TimerQueue::HandleRead() {
 
     std::vector<Entry> expired = GetExpired(now);
 
+    calling_expired_timers_ = true;
+    canceling_timers_.clear();
     // safe to call outside critical section
     for (auto &it: expired) {
         it.second->Run();
     }
+    calling_expired_timers_ = false;
 
     Reset(std::move(expired), now);
 }
 
 std::vector<TimerQueue::Entry> TimerQueue::GetExpired(time::TimePoint now) {
-    auto it = timers_.lower_bound(now);
-    assert(it == timers_.end() || now < it->first);
+    auto timer_id = TimerID(reinterpret_cast<Timer *>(UINTPTR_MAX), INT64_MAX);
+    auto it = timers_.lower_bound(Key(now, timer_id));
+    assert(it == timers_.end() || now < it->first.first);
     std::vector<Entry> expired(std::make_move_iterator(timers_.begin()), std::make_move_iterator(it));
     timers_.erase(timers_.begin(), it);
+
+    for (auto &entry: expired) {
+        size_t n = active_timers_.erase(entry.first.second);
+        assert(n == 1);
+    }
+
+    assert(timers_.size() == active_timers_.size());
     return expired;
 }
 
 void TimerQueue::Reset(std::vector<Entry> &&expired, time::TimePoint now) {
     for (auto &entry: expired) {
-        if (entry.second->Repeat()) {
+        if (entry.second->Repeat() && canceling_timers_.find(entry.first.second) == canceling_timers_.end()) {
             entry.second->Restart(now);
             Insert(std::move(entry));
         }
@@ -140,11 +151,37 @@ bool TimerQueue::Insert(TimerQueue::Entry &&entry) {
     assert(entry.second->Expiration().has_value());
     time::TimePoint when = entry.second->Expiration().value();
     auto it = timers_.begin();
-    if (it == timers_.end() || when < it->first) {
+    if (it == timers_.end() || when < it->first.first) {
         earliest_changed = true;
     }
 
-    timers_.insert(std::move(entry));
+    {
+        auto[_, ok] = active_timers_.insert(entry.first.second);
+        assert(ok);
+    }
+    {
+        auto[_, ok] = timers_.insert(std::move(entry));
+        assert(ok);
+    }
 
+    assert(timers_.size() == active_timers_.size());
     return earliest_changed;
+}
+
+void TimerQueue::Cancel(TimerID timer_id) {
+    loop_->RunInLoop([this, timer_id] { CancelInLoop(timer_id); });
+}
+
+void TimerQueue::CancelInLoop(TimerID timer_id) {
+    loop_->AssetInLoopThread();
+    assert(timers_.size() == active_timers_.size());
+    auto it = active_timers_.find(timer_id);
+    if (it != active_timers_.end()) {
+        size_t n = timers_.erase(Key(timer_id.timer_->Expiration().value(), timer_id));
+        assert(n == 1);
+        active_timers_.erase(it);
+    } else if (calling_expired_timers_) {
+        canceling_timers_.insert(timer_id);
+    }
+    assert(timers_.size() == active_timers_.size());
 }

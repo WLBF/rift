@@ -8,6 +8,7 @@
 #include "inet_address.h"
 #include <cstdio>
 #include <unistd.h>
+#include <glog/logging.h>
 
 std::string message;
 
@@ -37,7 +38,8 @@ void OnMessage(const rift::TcpConnectionPtr &conn,
     buf->RetrieveAll();
 }
 
-int main() {
+int main(int argc, char **argv) {
+    ::google::InitGoogleLogging(argv[0]);
     printf("main(): pid = %d\n", getpid());
 
     std::string line;

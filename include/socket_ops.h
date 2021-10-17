@@ -40,6 +40,8 @@ namespace rift::sockets {
     /// abort if any error.
     int CreateNonblockingOrDie();
 
+    int  Connect(int sock_fd, const struct sockaddr_in& addr);
+
     void BindOrDie(int sock_fd, const struct sockaddr_in &addr);
 
     void ListenOrDie(int sock_fd);
@@ -53,10 +55,13 @@ namespace rift::sockets {
     void FromHostPort(const char *ip, uint16_t port, struct sockaddr_in *addr);
 
     struct sockaddr_in GetLocalAddr(int sock_fd);
+    struct sockaddr_in GetPeerAddr(int sock_fd);
 
     int GetSocketError(int sock_fd);
 
     void ShutdownWrite(int sock_fd);
+
+    bool IsSelfConnect(int sock_fd);
 }
 
 #endif //RIFT_SOCKET_OPS_H

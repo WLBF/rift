@@ -11,14 +11,25 @@ namespace rift {
     ///
     /// An opaque identifier, for canceling Timer.
     ///
-    class TimerId {
+    class TimerID {
     public:
-        explicit TimerId(Timer *timer) : value_(timer) {}
+        explicit TimerID(Timer *timer, int64_t seq) : timer_(timer), sequence_(seq) {}
 
         // default copy-constructor, destructor and assignment are okay
 
+        bool operator==(const TimerID &timer_id) {
+            return timer_id.timer_ == timer_ && timer_id.sequence_ == sequence_;
+        }
+
+        bool operator<(const TimerID &timer_id) const {
+            return timer_id.timer_ < timer_ && timer_id.sequence_ < sequence_;
+        }
+
+        friend class TimerQueue;
+
     private:
-        Timer *value_;
+        Timer *timer_;
+        int64_t sequence_;
     };
 
 }
