@@ -10,7 +10,7 @@
 int main(int argc, char **argv) {
     ::google::InitGoogleLogging(argv[0]);
     rift::EventLoop loop;
-    auto connect_callback = [&](int sock_fd) {
+    auto connect_callback = [&](rift::SocketPtr &&sock) {
         printf("connected.\n");
         loop.Quit();
     };

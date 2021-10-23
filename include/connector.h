@@ -7,6 +7,7 @@
 
 #include "inet_address.h"
 #include "timer_id.h"
+#include "socket.h"
 #include <functional>
 #include <memory>
 
@@ -18,7 +19,7 @@ namespace rift {
 
     class Connector {
     public:
-        using NewConnectionCallback = std::function<void(int sock_fd)>;
+        using NewConnectionCallback = std::function<void(SocketPtr &&sock)>;
 
         Connector(EventLoop *loop, InetAddress &server_addr);
 
@@ -69,7 +70,7 @@ namespace rift {
         TimerID timer_id_;
     };
 
-    using ConnectorPtr = std::unique_ptr<Connector>;
+    using ConnectorPtr = std::shared_ptr<Connector>;
 
 }
 #endif //RIFT_CONNECTOR_H

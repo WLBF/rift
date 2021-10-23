@@ -127,7 +127,7 @@ namespace rift {
             } else {
                 SetState(k_connected);
                 if (connect_) {
-                    new_connection_callback_(sock_fd);
+                    new_connection_callback_(std::make_shared<Socket>(sock_fd));
                 } else {
                     sockets::Close(sock_fd);
                 }
