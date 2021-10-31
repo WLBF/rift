@@ -46,7 +46,7 @@ namespace rift {
 
         [[nodiscard]] int Events() const { return events_; };
 
-        void SetEvents(int revt) { revents_ = revt; }
+        void SetRevents(int revt) { revents_ = revt; }
 
         [[nodiscard]] bool IsNoneEvent() const { return events_ == k_none_event; }
 

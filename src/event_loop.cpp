@@ -3,13 +3,13 @@
 //
 
 #include "event_loop.h"
-#include "poller.h"
+#include "epoller.h"
 #include "channel.h"
 #include "timer_queue.h"
 
 #include <cassert>
 #include <glog/logging.h>
-#include <signal.h>
+#include <csignal>
 #include <sys/eventfd.h>
 
 
@@ -39,7 +39,7 @@ namespace rift {
             : looping_(false), quit_(false),
               thread_id_(std::this_thread::get_id()),
               calling_pending_fucntors_(false),
-              poller_(new Poller(this)),
+              poller_(new EPoller(this)),
               timer_queue_(new TimerQueue(this)),
               wakeup_fd_(CreateEventFd()),
               wakeup_channel_(new Channel(this, wakeup_fd_)) {

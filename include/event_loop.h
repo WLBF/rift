@@ -16,7 +16,7 @@ namespace rift {
 
     class Channel;
 
-    class Poller;
+    class EPoller;
 
     class TimerQueue;
 
@@ -108,7 +108,7 @@ namespace rift {
         bool calling_pending_fucntors_; /* atomic */
         const std::thread::id thread_id_;
         time::TimePoint poll_return_time_;
-        std::unique_ptr<Poller> poller_;
+        std::unique_ptr<EPoller> poller_;
         std::unique_ptr<TimerQueue> timer_queue_;
         int wakeup_fd_;
         // unlike in TimerQueue, which is an internal class,

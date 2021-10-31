@@ -35,7 +35,7 @@ namespace rift {
                 assert(ch != channels_.end());
                 Channel *channel = ch->second;
                 assert(channel->Fd() == it->fd);
-                channel->SetEvents(it->revents);
+                channel->SetRevents(it->revents);
                 active_channels->push_back(channel);
             }
         }
