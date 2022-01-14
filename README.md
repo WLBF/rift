@@ -1,6 +1,6 @@
 # Rift
 
-Yet another reproduction of muduo library.
+Yet another copy of muduo library.
 
 ### Modifications
 
